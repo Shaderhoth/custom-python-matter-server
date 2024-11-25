@@ -1,60 +1,57 @@
-name: Publish releases
+name: Build and Push Custom Matter Server
 
 on:
-  release:
-    types: [published]
+  push:
+    branches:
+      - main
 env:
   PYTHON_VERSION: "3.11"
   NODE_VERSION: "18.x"
 
 jobs:
   build-and-push-container-image:
-    name: Builds and pushes the Matter Server container to ghcr.io
+    name: Build and Push Custom Docker Image
     runs-on: ubuntu-latest
     permissions:
       packages: write
-    needs: build-and-publish-pypi
     steps:
       - uses: actions/checkout@v4.2.2
+
+      # Set up Python environment to build the package
+      - name: Set up Python ${{ env.PYTHON_VERSION }}
+        uses: actions/setup-python@v5.3.0
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+      - name: Install build tools
+        run: pip install build
+
+      # Build the Python package locally
+      - name: Build the Python package
+        run: python3 -m build
+        env:
+          PYTHON_MATTER_SERVER: "6.9.0"
+
+      # Log in to GitHub container registry
       - name: Log in to the GitHub container registry
         uses: docker/login-action@v3.3.0
         with:
           registry: ghcr.io
           username: ${{ github.repository_owner }}
           password: ${{ secrets.GITHUB_TOKEN }}
+
+      # Set up Docker Buildx
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3.7.1
-      - name: Version number for tags
-        id: tags
-        shell: bash
-        run: |-
-          patch=${GITHUB_REF#refs/*/}
-          echo "patch=${patch}" >> $GITHUB_OUTPUT
-          echo "minor=${patch%.*}" >> $GITHUB_OUTPUT
-          echo "major=${patch%.*.*}" >> $GITHUB_OUTPUT
-      - name: Build and Push release
+
+      # Build and Push Docker Image
+      - name: Build and Push Docker Image
         uses: docker/build-push-action@v6.9.0
-        if: github.event.release.prerelease == false
         with:
           context: .
           platforms: linux/amd64,linux/arm64
           file: Dockerfile
-          tags: |-
-            ghcr.io/shaderhoth/python-matter-server:${{ steps.tags.outputs.patch }},
-            ghcr.io/shaderhoth/python-matter-server:${{ steps.tags.outputs.minor }},
-            ghcr.io/shaderhoth/python-matter-server:${{ steps.tags.outputs.major }},
-            ghcr.io/shaderhoth/python-matter-server:stable
+          tags: |
+            ghcr.io/shaderhoth/python-matter-server:latest
           push: true
-          build-args: "PYTHON_MATTER_SERVER=${{ needs.build-and-publish-pypi.outputs.version }}"
-      - name: Build and Push pre-release
-        uses: docker/build-push-action@v6.9.0
-        if: github.event.release.prerelease == true
-        with:
-          context: .
-          platforms: linux/amd64,linux/arm64
-          file: Dockerfile
-          tags: |-
-            ghcr.io/${{ github.repository_owner }}/python-matter-server:${{ steps.tags.outputs.patch }},
-            ghcr.io/${{ github.repository_owner }}/python-matter-server:beta
-          push: true
-          build-args: "PYTHON_MATTER_SERVER=${{ needs.build-and-publish-pypi.outputs.version }}"
+          build-args: >
+            PYTHON_MATTER_SERVER=dist/python_matter_server-6.9.0.tar.gz
