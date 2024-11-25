@@ -376,7 +376,7 @@ class TemperatureDifferenceMeasurementCluster(Cluster, CustomClusterMixin):
                 return ClusterObjectFieldDescriptor(Type=float32)
 
             value: float32 = 0.0
-            
+
 def should_poll_eve_energy(node_data: MatterNodeData) -> bool:
     """Check if the (Eve Energy) custom attribute should be polled for state changes."""
     attr_path = create_attribute_path_from_attribute(
