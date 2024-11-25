@@ -41,9 +41,10 @@ RUN \
     fi \
     && chmod +x /usr/local/bin/chip-ota-provider-app
 
-# hadolint ignore=DL3013
-RUN \
-    pip3 install --no-cache-dir "python-matter-server[server]==${PYTHON_MATTER_SERVER}"
+COPY my-python-package/python_matter_server-*.tar.gz /tmp/
+
+RUN pip3 install --no-cache-dir /tmp/python_matter_server-*.tar.gz
+
 
 VOLUME ["/data"]
 EXPOSE 5580

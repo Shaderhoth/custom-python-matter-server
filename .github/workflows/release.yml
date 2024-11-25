@@ -10,48 +10,47 @@ env:
 
 jobs:
   build-and-push-container-image:
-    name: Build and Push Custom Docker Image
-    runs-on: ubuntu-latest
-    permissions:
-      packages: write
-    steps:
-      - uses: actions/checkout@v4.2.2
+  name: Builds and pushes the Matter Server container to ghcr.io
+  runs-on: ubuntu-latest
+  permissions:
+    packages: write
+  steps:
+    - uses: actions/checkout@v4.2.2
 
-      # Set up Python environment to build the package
-      - name: Set up Python ${{ env.PYTHON_VERSION }}
-        uses: actions/setup-python@v5.3.0
-        with:
-          python-version: ${{ env.PYTHON_VERSION }}
-      - name: Install build tools
-        run: pip install build
+    # Set up Python environment for building the package
+    - name: Set up Python
+      uses: actions/setup-python@v5.3.0
+      with:
+        python-version: "3.11"
 
-      # Build the Python package locally
-      - name: Build the Python package
-        run: python3 -m build
-        env:
-          PYTHON_MATTER_SERVER: "6.9.0"
+    - name: Install build tools
+      run: pip install build
 
-      # Log in to GitHub container registry
-      - name: Log in to the GitHub container registry
-        uses: docker/login-action@v3.3.0
-        with:
-          registry: ghcr.io
-          username: ${{ github.repository_owner }}
-          password: ${{ secrets.GITHUB_TOKEN }}
+    - name: Build Python package
+      run: python -m build
 
-      # Set up Docker Buildx
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v3.7.1
+    # Set up Docker environment for building the image
+    - name: Log in to the GitHub container registry
+      uses: docker/login-action@v3.3.0
+      with:
+        registry: ghcr.io
+        username: ${{ github.repository_owner }}
+        password: ${{ secrets.GITHUB_TOKEN }}
 
-      # Build and Push Docker Image
-      - name: Build and Push Docker Image
-        uses: docker/build-push-action@v6.9.0
-        with:
-          context: .
-          platforms: linux/amd64,linux/arm64
-          file: Dockerfile
-          tags: |
-            ghcr.io/shaderhoth/python-matter-server:latest
-          push: true
-          build-args: >
-            PYTHON_MATTER_SERVER=dist/python_matter_server-6.9.0.tar.gz
+    - name: Set up Docker Buildx
+      uses: docker/setup-buildx-action@v3.7.1
+
+    - name: Build and Push Docker Image
+      uses: docker/build-push-action@v6.9.0
+      with:
+        context: .
+        platforms: linux/amd64,linux/arm64
+        file: Dockerfile
+        tags: |
+          ghcr.io/${{ github.repository_owner }}/python-matter-server:latest
+        push: true
+        build-args: |
+          PYTHON_MATTER_SERVER=/tmp/python_matter_server-*.tar.gz
+      build-contexts: |
+        my-python-package=dist
+
