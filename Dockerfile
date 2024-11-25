@@ -24,8 +24,6 @@ RUN \
         /var/lib/apt/lists/* \
         /usr/src/*
 
-ARG PYTHON_MATTER_SERVER
-
 ENV chip_example_url "https://github.com/home-assistant-libs/matter-linux-ota-provider/releases/download/2024.7.2"
 ARG TARGETPLATFORM
 
@@ -41,8 +39,8 @@ RUN \
     fi \
     && chmod +x /usr/local/bin/chip-ota-provider-app
 
-# Copy the Python package from the context provided by the workflow
-COPY my-python-package/python_matter_server-*.tar.gz /tmp/
+# Copy the Python package from the build context
+COPY python_matter_server-*.tar.gz /tmp/
 
 # Install the local Python package
 RUN pip3 install --no-cache-dir /tmp/python_matter_server-*.tar.gz
