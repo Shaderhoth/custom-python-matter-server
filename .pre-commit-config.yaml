@@ -10,13 +10,6 @@ repos:
         entry: scripts/run-in-env.sh ruff check --fix
         require_serial: true
         stages: [commit, push, manual]
-      - id: ruff-format
-        name: 🐶 Ruff Formatter
-        language: system
-        types: [python]
-        entry: scripts/run-in-env.sh ruff format
-        require_serial: true
-        stages: [commit, push, manual]
       - id: check-ast
         name: 🐍 Check Python AST
         language: system
