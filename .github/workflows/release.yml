@@ -3,28 +3,31 @@ name: CI/CD Workflow
 on:
   push:
     branches:
-      - main  # Replace with your default branch name if different
-    tags:
-      - "*"
+      - '**'  # Runs on pushes to all branches
 
 env:
   PYTHON_VERSION: "3.11"
   NODE_VERSION: "18.x"
+  CONSTANT_VERSION: "6.9.0"
 
 jobs:
   build-and-publish-pypi:
-    name: Build and publish Python package to PyPI
+    name: Build and publish to PyPI
     runs-on: ubuntu-latest
-    if: startsWith(github.ref, 'refs/tags/')
     steps:
       - uses: actions/checkout@v4.2.2
       - name: Set up Python ${{ env.PYTHON_VERSION }}
         uses: actions/setup-python@v5.3.0
         with:
           python-version: ${{ env.PYTHON_VERSION }}
+      - name: Set up Node ${{ env.NODE_VERSION }}
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
       - name: Install build dependencies
-        run: pip install build tomli tomli-w
-      - name: Set Python project version from tag
+        run: >-
+          pip install build tomli tomli-w
+      - name: Set Python project version to constant
         shell: python
         run: |-
           import tomli
@@ -33,17 +36,24 @@ jobs:
           with open("pyproject.toml", "rb") as f:
             pyproject = tomli.load(f)
 
-          pyproject["project"]["version"] = "${{ github.ref_name }}"
+          pyproject["project"]["version"] = "${{ env.CONSTANT_VERSION }}"
 
           with open("pyproject.toml", "wb") as f:
             tomli_w.dump(pyproject, f)
+      - name: Build dashboard
+        run: |
+          pip install -e .
+          dashboard/script/setup
+          dashboard/script/build
       - name: Build Python package
         run: python3 -m build
-      - name: Publish release to PyPI
+      - name: Publish package to PyPI
         uses: pypa/gh-action-pypi-publish@v1.12.2
         with:
           user: __token__
           password: ${{ secrets.PYPI_TOKEN }}
+      - name: Wait for PyPI
+        run: sleep 300
 
   build-and-push-container-image:
     name: Build and push Docker image
@@ -60,22 +70,14 @@ jobs:
           password: ${{ secrets.GITHUB_TOKEN }}
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3.7.1
-      - name: Determine tags
-        id: tags
-        run: |-
-          if [[ "${{ github.ref }}" == refs/tags/* ]]; then
-            version=${{ github.ref_name }}
-            echo "tags=ghcr.io/${{ github.repository_owner }}/python-matter-server:${version},ghcr.io/${{ github.repository_owner }}/python-matter-server:latest" >> $GITHUB_OUTPUT
-          elif [[ "${{ github.ref }}" == refs/heads/* ]]; then
-            branch=$(echo "${{ github.ref_name }}" | tr '/' '-')
-            echo "tags=ghcr.io/${{ github.repository_owner }}/python-matter-server:${branch}" >> $GITHUB_OUTPUT
-          else
-            echo "tags=ghcr.io/${{ github.repository_owner }}/python-matter-server:commit-${{ github.sha }}" >> $GITHUB_OUTPUT
-      - name: Build and push Docker image
+      - name: Build and Push Docker image
         uses: docker/build-push-action@v6.9.0
         with:
           context: .
           platforms: linux/amd64,linux/arm64
           file: Dockerfile
-          tags: ${{ steps.tags.outputs.tags }}
+          tags: |-
+            ghcr.io/${{ github.repository_owner }}/python-matter-server:${{ env.CONSTANT_VERSION }},
+            ghcr.io/${{ github.repository_owner }}/python-matter-server:latest
           push: true
+          build-args: "PYTHON_MATTER_SERVER=${{ env.CONSTANT_VERSION }}"
