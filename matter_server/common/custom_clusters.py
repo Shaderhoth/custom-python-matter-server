@@ -274,7 +274,6 @@ class OccupancyMeasurementCluster(Cluster, CustomClusterMixin):
             value: uint = 0
 
 
-
 @dataclass
 class TemperatureDifferenceMeasurementCluster(Cluster, CustomClusterMixin):
     """Custom cluster for Temperature Difference Measurement."""
