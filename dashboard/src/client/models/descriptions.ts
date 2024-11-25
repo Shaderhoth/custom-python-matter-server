@@ -8302,6 +8302,48 @@ export const clusters: Record<number, ClusterDescription> = {
       }
     }
   },
+  "518": {
+    "id": 518,
+    "label": "SoundVolumeMeasurement",
+    "attributes": {
+      "0": {
+        "id": 0,
+        "cluster_id": 518,
+        "label": "MeasuredValue",
+        "type": "float32"
+      },
+      "1": {
+        "id": 1,
+        "cluster_id": 518,
+        "label": "MinMeasuredValue",
+        "type": "Optional[float32]"
+      },
+      "2": {
+        "id": 2,
+        "cluster_id": 518,
+        "label": "MaxMeasuredValue",
+        "type": "Optional[float32]"
+      },
+      "5": {
+        "id": 5,
+        "cluster_id": 518,
+        "label": "AverageMeasuredValue",
+        "type": "Optional[float32]"
+      },
+      "6": {
+        "id": 6,
+        "cluster_id": 518,
+        "label": "AverageMeasuredValueWindow",
+        "type": "Optional[uint]"
+      },
+      "65533": {
+        "id": 65533,
+        "cluster_id": 518,
+        "label": "ClusterRevision",
+        "type": "uint"
+      }
+    }
+  },
   "768": {
     "id": 768,
     "label": "ColorControl",
@@ -8854,6 +8896,36 @@ export const clusters: Record<number, ClusterDescription> = {
       }
     }
   },
+  "1025": {
+    "id": 1025,
+    "label": "TemperatureDifferenceMeasurement",
+    "attributes": {
+      "0": {
+        "id": 0,
+        "cluster_id": 1025,
+        "label": "TemperatureDifference",
+        "type": "float32"
+      },
+      "1": {
+        "id": 1,
+        "cluster_id": 1025,
+        "label": "MinTemperatureDifference",
+        "type": "Optional[float32]"
+      },
+      "2": {
+        "id": 2,
+        "cluster_id": 1025,
+        "label": "MaxTemperatureDifference",
+        "type": "Optional[float32]"
+      },
+      "65533": {
+        "id": 65533,
+        "cluster_id": 1025,
+        "label": "ClusterRevision",
+        "type": "uint"
+      }
+    }
+  },
   "1026": {
     "id": 1026,
     "label": "TemperatureMeasurement",
@@ -9269,6 +9341,36 @@ export const clusters: Record<number, ClusterDescription> = {
       "65533": {
         "id": 65533,
         "cluster_id": 1030,
+        "label": "ClusterRevision",
+        "type": "uint"
+      }
+    }
+  },
+  "1031": {
+    "id": 1031,
+    "label": "OccupancyMeasurement",
+    "attributes": {
+      "0": {
+        "id": 0,
+        "cluster_id": 1031,
+        "label": "OccupantCount",
+        "type": "uint"
+      },
+      "1": {
+        "id": 1,
+        "cluster_id": 1031,
+        "label": "MinOccupantCount",
+        "type": "Optional[uint]"
+      },
+      "2": {
+        "id": 2,
+        "cluster_id": 1031,
+        "label": "MaxOccupantCount",
+        "type": "Optional[uint]"
+      },
+      "65533": {
+        "id": 65533,
+        "cluster_id": 1031,
         "label": "ClusterRevision",
         "type": "uint"
       }
