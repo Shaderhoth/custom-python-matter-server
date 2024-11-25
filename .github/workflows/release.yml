@@ -4,18 +4,34 @@ on:
   push:
     branches:
       - '**'  # Runs on pushes to all branches
-
 env:
   PYTHON_VERSION: "3.11"
   NODE_VERSION: "18.x"
-  CONSTANT_VERSION: "6.9.0"
 
 jobs:
   build-and-publish-pypi:
-    name: Build and publish to PyPI
+    name: Builds and publishes releases to PyPI
     runs-on: ubuntu-latest
+    outputs:
+      version: ${{ steps.vars.outputs.tag }}
     steps:
       - uses: actions/checkout@v4.2.2
+      - name: Get tag
+        id: vars
+        run: echo "tag=${GITHUB_REF#refs/*/}" >> $GITHUB_OUTPUT
+      - name: Validate version number
+        run: >-
+          if [[ "${{ github.event.release.prerelease }}" == "true" ]]; then
+            if ! [[ "${{ steps.vars.outputs.tag }}" =~ "b" ]]; then
+            echo "Pre-release: Tag is missing beta suffix (${{ steps.vars.outputs.tag }})"
+              exit 1
+            fi
+          else
+            if [[ "${{ steps.vars.outputs.tag }}" =~ "b" ]]; then
+              echo "Release: Tag must not have a beta suffix (${{ steps.vars.outputs.tag }})"
+              exit 1
+            fi
+          fi
       - name: Set up Python ${{ env.PYTHON_VERSION }}
         uses: actions/setup-python@v5.3.0
         with:
@@ -24,10 +40,10 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: ${{ env.NODE_VERSION }}
-      - name: Install build dependencies
+      - name: Install build
         run: >-
           pip install build tomli tomli-w
-      - name: Set Python project version to constant
+      - name: Set Python project version from tag
         shell: python
         run: |-
           import tomli
@@ -36,7 +52,7 @@ jobs:
           with open("pyproject.toml", "rb") as f:
             pyproject = tomli.load(f)
 
-          pyproject["project"]["version"] = "${{ env.CONSTANT_VERSION }}"
+          pyproject["project"]["version"] = "${{ steps.vars.outputs.tag }}"
 
           with open("pyproject.toml", "wb") as f:
             tomli_w.dump(pyproject, f)
@@ -45,24 +61,25 @@ jobs:
           pip install -e .
           dashboard/script/setup
           dashboard/script/build
-      - name: Build Python package
-        run: python3 -m build
-      - name: Publish package to PyPI
+      - name: Build python package
+        run: >-
+          python3 -m build
+      - name: Publish release to PyPI
         uses: pypa/gh-action-pypi-publish@v1.12.2
         with:
           user: __token__
           password: ${{ secrets.PYPI_TOKEN }}
       - name: Wait for PyPI
         run: sleep 300
-
   build-and-push-container-image:
-    name: Build and push Docker image
+    name: Builds and pushes the Matter Server container to ghcr.io
     runs-on: ubuntu-latest
     permissions:
       packages: write
+    needs: build-and-publish-pypi
     steps:
       - uses: actions/checkout@v4.2.2
-      - name: Log in to GitHub Container Registry
+      - name: Log in to the GitHub container registry
         uses: docker/login-action@v3.3.0
         with:
           registry: ghcr.io
@@ -70,14 +87,37 @@ jobs:
           password: ${{ secrets.GITHUB_TOKEN }}
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3.7.1
-      - name: Build and Push Docker image
+      - name: Version number for tags
+        id: tags
+        shell: bash
+        run: |-
+          patch=${GITHUB_REF#refs/*/}
+          echo "patch=${patch}" >> $GITHUB_OUTPUT
+          echo "minor=${patch%.*}" >> $GITHUB_OUTPUT
+          echo "major=${patch%.*.*}" >> $GITHUB_OUTPUT
+      - name: Build and Push release
         uses: docker/build-push-action@v6.9.0
+        if: github.event.release.prerelease == false
         with:
           context: .
           platforms: linux/amd64,linux/arm64
           file: Dockerfile
           tags: |-
-            ghcr.io/shaderhoth/python-matter-server:${{ env.CONSTANT_VERSION }},
-            ghcr.io/shaderhoth/python-matter-server:latest
+            ghcr.io/shaderhoth/python-matter-server:${{ steps.tags.outputs.patch }},
+            ghcr.io/shaderhoth/python-matter-server:${{ steps.tags.outputs.minor }},
+            ghcr.io/shaderhoth/python-matter-server:${{ steps.tags.outputs.major }},
+            ghcr.io/shaderhoth/python-matter-server:stable
           push: true
-          build-args: "PYTHON_MATTER_SERVER=${{ env.CONSTANT_VERSION }}"
+          build-args: "PYTHON_MATTER_SERVER=${{ needs.build-and-publish-pypi.outputs.version }}"
+      - name: Build and Push pre-release
+        uses: docker/build-push-action@v6.9.0
+        if: github.event.release.prerelease == true
+        with:
+          context: .
+          platforms: linux/amd64,linux/arm64
+          file: Dockerfile
+          tags: |-
+            ghcr.io/${{ github.repository_owner }}/python-matter-server:${{ steps.tags.outputs.patch }},
+            ghcr.io/${{ github.repository_owner }}/python-matter-server:beta
+          push: true
+          build-args: "PYTHON_MATTER_SERVER=${{ needs.build-and-publish-pypi.outputs.version }}"
