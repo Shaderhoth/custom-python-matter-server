@@ -68,6 +68,218 @@ class CustomClusterAttributeMixin:
         ALL_CUSTOM_ATTRIBUTES[cls.cluster_id][cls.attribute_id] = cls
 
 
+@dataclass
+class SoundVolumeMeasurementCluster(Cluster, CustomClusterMixin):
+    """Custom cluster for Sound Volume Measurement."""
+    print("SoundVolumeMeasurementCluster")
+
+    id: ClassVar[int] = 0x0206
+
+    @ChipUtility.classproperty
+    def descriptor(cls) -> ClusterObjectDescriptor:
+        """Return descriptor for this cluster."""
+        return ClusterObjectDescriptor(
+            Fields=[
+                ClusterObjectFieldDescriptor(Label="MeasuredValue", Tag=0x0000, Type=float32),
+                ClusterObjectFieldDescriptor(Label="MinMeasuredValue", Tag=0x0001, Type=float32),
+                ClusterObjectFieldDescriptor(Label="MaxMeasuredValue", Tag=0x0002, Type=float32),
+                ClusterObjectFieldDescriptor(Label="AverageMeasuredValue", Tag=0x0005, Type=float32),
+                ClusterObjectFieldDescriptor(Label="AverageMeasuredValueWindow", Tag=0x0006, Type=uint),
+            ]
+        )
+
+    MeasuredValue: float32 | None = None
+    MinMeasuredValue: float32 | None = None
+    MaxMeasuredValue: float32 | None = None
+    AverageMeasuredValue: float32 | None = None
+    AverageMeasuredValueWindow: uint | None = None
+
+    class Attributes:
+        """Attributes for the Sound Volume Measurement Cluster."""
+
+        @dataclass
+        class MeasuredValue(ClusterAttributeDescriptor, CustomClusterAttributeMixin):
+            @ChipUtility.classproperty
+            def cluster_id(cls) -> int:
+                return 0x0206
+
+            @ChipUtility.classproperty
+            def attribute_id(cls) -> int:
+                return 0x0000
+
+            value: float32 = 0.0
+
+        @dataclass
+        class MinMeasuredValue(ClusterAttributeDescriptor, CustomClusterAttributeMixin):
+            @ChipUtility.classproperty
+            def cluster_id(cls) -> int:
+                return 0x0206
+
+            @ChipUtility.classproperty
+            def attribute_id(cls) -> int:
+                return 0x0001
+
+            value: float32 = 0.0
+
+        @dataclass
+        class MaxMeasuredValue(ClusterAttributeDescriptor, CustomClusterAttributeMixin):
+            @ChipUtility.classproperty
+            def cluster_id(cls) -> int:
+                return 0x0206
+
+            @ChipUtility.classproperty
+            def attribute_id(cls) -> int:
+                return 0x0002
+
+            value: float32 = 0.0
+
+        @dataclass
+        class AverageMeasuredValue(ClusterAttributeDescriptor, CustomClusterAttributeMixin):
+            @ChipUtility.classproperty
+            def cluster_id(cls) -> int:
+                return 0x0206
+
+            @ChipUtility.classproperty
+            def attribute_id(cls) -> int:
+                return 0x0005
+
+            value: float32 = 0.0
+
+        @dataclass
+        class AverageMeasuredValueWindow(ClusterAttributeDescriptor, CustomClusterAttributeMixin):
+            @ChipUtility.classproperty
+            def cluster_id(cls) -> int:
+                return 0x0206
+
+            @ChipUtility.classproperty
+            def attribute_id(cls) -> int:
+                return 0x0006
+
+            value: uint = 0
+
+
+@dataclass
+class OccupancyMeasurementCluster(Cluster, CustomClusterMixin):
+    """Custom cluster for Occupancy Measurement."""
+
+    id: ClassVar[int] = 0x0407
+
+    @ChipUtility.classproperty
+    def descriptor(cls) -> ClusterObjectDescriptor:
+        """Return descriptor for this cluster."""
+        return ClusterObjectDescriptor(
+            Fields=[
+                ClusterObjectFieldDescriptor(Label="OccupantCount", Tag=0x0000, Type=uint),
+                ClusterObjectFieldDescriptor(Label="MinOccupantCount", Tag=0x0001, Type=uint),
+                ClusterObjectFieldDescriptor(Label="MaxOccupantCount", Tag=0x0002, Type=uint),
+            ]
+        )
+
+    OccupantCount: uint | None = None
+    MinOccupantCount: uint | None = None
+    MaxOccupantCount: uint | None = None
+
+    class Attributes:
+        """Attributes for the Occupancy Measurement Cluster."""
+
+        @dataclass
+        class OccupantCount(ClusterAttributeDescriptor, CustomClusterAttributeMixin):
+            @ChipUtility.classproperty
+            def cluster_id(cls) -> int:
+                return 0x0407
+
+            @ChipUtility.classproperty
+            def attribute_id(cls) -> int:
+                return 0x0000
+
+            value: uint = 0
+
+        @dataclass
+        class MinOccupantCount(ClusterAttributeDescriptor, CustomClusterAttributeMixin):
+            @ChipUtility.classproperty
+            def cluster_id(cls) -> int:
+                return 0x0407
+
+            @ChipUtility.classproperty
+            def attribute_id(cls) -> int:
+                return 0x0001
+
+            value: uint = 0
+
+        @dataclass
+        class MaxOccupantCount(ClusterAttributeDescriptor, CustomClusterAttributeMixin):
+            @ChipUtility.classproperty
+            def cluster_id(cls) -> int:
+                return 0x0407
+
+            @ChipUtility.classproperty
+            def attribute_id(cls) -> int:
+                return 0x0002
+
+            value: uint = 0
+
+
+
+@dataclass
+class TemperatureDifferenceMeasurementCluster(Cluster, CustomClusterMixin):
+    """Custom cluster for Temperature Difference Measurement."""
+
+    id: ClassVar[int] = 0x0401
+
+    @ChipUtility.classproperty
+    def descriptor(cls) -> ClusterObjectDescriptor:
+        """Return descriptor for this cluster."""
+        return ClusterObjectDescriptor(
+            Fields=[
+                ClusterObjectFieldDescriptor(Label="TemperatureDifference", Tag=0x0000, Type=float32),
+                ClusterObjectFieldDescriptor(Label="MinTemperatureDifference", Tag=0x0001, Type=float32),
+                ClusterObjectFieldDescriptor(Label="MaxTemperatureDifference", Tag=0x0002, Type=float32),
+            ]
+        )
+
+    TemperatureDifference: float32 | None = None
+    MinTemperatureDifference: float32 | None = None
+    MaxTemperatureDifference: float32 | None = None
+
+    class Attributes:
+        """Attributes for the Temperature Difference Measurement Cluster."""
+
+        @dataclass
+        class TemperatureDifference(ClusterAttributeDescriptor, CustomClusterAttributeMixin):
+            @ChipUtility.classproperty
+            def cluster_id(cls) -> int:
+                return 0x0401
+
+            @ChipUtility.classproperty
+            def attribute_id(cls) -> int:
+                return 0x0000
+
+            value: float32 = 0.0
+
+        @dataclass
+        class MinTemperatureDifference(ClusterAttributeDescriptor, CustomClusterAttributeMixin):
+            @ChipUtility.classproperty
+            def cluster_id(cls) -> int:
+                return 0x0401
+
+            @ChipUtility.classproperty
+            def attribute_id(cls) -> int:
+                return 0x0001
+
+            value: float32 = 0.0
+
+        @dataclass
+        class MaxTemperatureDifference(ClusterAttributeDescriptor, CustomClusterAttributeMixin):
+            @ChipUtility.classproperty
+            def cluster_id(cls) -> int:
+                return 0x0401
+
+            @ChipUtility.classproperty
+            def attribute_id(cls) -> int:
+                return 0x0002
+
+            value: float32 = 0.0
+            
 def should_poll_eve_energy(node_data: MatterNodeData) -> bool:
     """Check if the (Eve Energy) custom attribute should be polled for state changes."""
     attr_path = create_attribute_path_from_attribute(
