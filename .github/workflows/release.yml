@@ -50,5 +50,5 @@ jobs:
           platforms: linux/amd64,linux/arm64
           file: Dockerfile
           tags: |
-            ghcr.io/${{ github.repository_owner }}/python-matter-server:latest
+            ghcr.io/shaderhoth/python-matter-server:latest
           push: true
