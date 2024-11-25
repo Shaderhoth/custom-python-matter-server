@@ -8,68 +8,6 @@ env:
   NODE_VERSION: "18.x"
 
 jobs:
-  build-and-publish-pypi:
-    name: Builds and publishes releases to PyPI
-    runs-on: ubuntu-latest
-    outputs:
-      version: ${{ steps.vars.outputs.tag }}
-    steps:
-      - uses: actions/checkout@v4.2.2
-      - name: Get tag
-        id: vars
-        run: echo "tag=${GITHUB_REF#refs/*/}" >> $GITHUB_OUTPUT
-      - name: Validate version number
-        run: >-
-          if [[ "${{ github.event.release.prerelease }}" == "true" ]]; then
-            if ! [[ "${{ steps.vars.outputs.tag }}" =~ "b" ]]; then
-            echo "Pre-release: Tag is missing beta suffix (${{ steps.vars.outputs.tag }})"
-              exit 1
-            fi
-          else
-            if [[ "${{ steps.vars.outputs.tag }}" =~ "b" ]]; then
-              echo "Release: Tag must not have a beta suffix (${{ steps.vars.outputs.tag }})"
-              exit 1
-            fi
-          fi
-      - name: Set up Python ${{ env.PYTHON_VERSION }}
-        uses: actions/setup-python@v5.3.0
-        with:
-          python-version: ${{ env.PYTHON_VERSION }}
-      - name: Set up Node ${{ env.NODE_VERSION }}
-        uses: actions/setup-node@v4
-        with:
-          node-version: ${{ env.NODE_VERSION }}
-      - name: Install build
-        run: >-
-          pip install build tomli tomli-w
-      - name: Set Python project version from tag
-        shell: python
-        run: |-
-          import tomli
-          import tomli_w
-
-          with open("pyproject.toml", "rb") as f:
-            pyproject = tomli.load(f)
-
-          pyproject["project"]["version"] = "${{ steps.vars.outputs.tag }}"
-
-          with open("pyproject.toml", "wb") as f:
-            tomli_w.dump(pyproject, f)
-      - name: Build dashboard
-        run: |
-          pip install -e .
-          dashboard/script/setup
-          dashboard/script/build
-      - name: Build python package
-        run: >-
-          python3 -m build
-      - name: Publish release to PyPI
-        uses: pypa/gh-action-pypi-publish@v1.12.2
-        with:
-          user: __token__
-          password: ${{ secrets.PYPI_TOKEN }}
-      - name: Wait for PyPI
-        run: sleep 300
   build-and-push-container-image:
     name: Builds and pushes the Matter Server container to ghcr.io
     runs-on: ubuntu-latest
