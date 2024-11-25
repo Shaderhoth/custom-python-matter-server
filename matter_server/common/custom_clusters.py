@@ -102,10 +102,12 @@ class SoundVolumeMeasurementCluster(Cluster, CustomClusterMixin):
 
             @ChipUtility.classproperty
             def cluster_id(cls) -> int:
+                """Return the cluster ID associated with this attribute."""
                 return 0x0206
 
             @ChipUtility.classproperty
             def attribute_id(cls) -> int:
+                """Return the attribute ID associated with this attribute."""
                 return 0x0000
 
             @ChipUtility.classproperty
@@ -121,10 +123,12 @@ class SoundVolumeMeasurementCluster(Cluster, CustomClusterMixin):
 
             @ChipUtility.classproperty
             def cluster_id(cls) -> int:
+                """Return the cluster ID associated with this attribute."""
                 return 0x0206
 
             @ChipUtility.classproperty
             def attribute_id(cls) -> int:
+                """Return the attribute ID associated with this attribute."""
                 return 0x0001
 
             @ChipUtility.classproperty
@@ -140,10 +144,12 @@ class SoundVolumeMeasurementCluster(Cluster, CustomClusterMixin):
 
             @ChipUtility.classproperty
             def cluster_id(cls) -> int:
+                """Return the cluster ID associated with this attribute."""
                 return 0x0206
 
             @ChipUtility.classproperty
             def attribute_id(cls) -> int:
+                """Return the attribute ID associated with this attribute."""
                 return 0x0002
 
             @ChipUtility.classproperty
@@ -159,10 +165,12 @@ class SoundVolumeMeasurementCluster(Cluster, CustomClusterMixin):
 
             @ChipUtility.classproperty
             def cluster_id(cls) -> int:
+                """Return the cluster ID associated with this attribute."""
                 return 0x0206
 
             @ChipUtility.classproperty
             def attribute_id(cls) -> int:
+                """Return the attribute ID associated with this attribute."""
                 return 0x0005
 
             @ChipUtility.classproperty
@@ -178,10 +186,12 @@ class SoundVolumeMeasurementCluster(Cluster, CustomClusterMixin):
 
             @ChipUtility.classproperty
             def cluster_id(cls) -> int:
+                """Return the cluster ID associated with this attribute."""
                 return 0x0206
 
             @ChipUtility.classproperty
             def attribute_id(cls) -> int:
+                """Return the attribute ID associated with this attribute."""
                 return 0x0006
 
             @ChipUtility.classproperty
@@ -222,10 +232,12 @@ class OccupancyMeasurementCluster(Cluster, CustomClusterMixin):
 
             @ChipUtility.classproperty
             def cluster_id(cls) -> int:
+                """Return the cluster ID associated with this attribute."""
                 return 0x0407
 
             @ChipUtility.classproperty
             def attribute_id(cls) -> int:
+                """Return the attribute ID associated with this attribute."""
                 return 0x0000
 
             @ChipUtility.classproperty
@@ -241,10 +253,12 @@ class OccupancyMeasurementCluster(Cluster, CustomClusterMixin):
 
             @ChipUtility.classproperty
             def cluster_id(cls) -> int:
+                """Return the cluster ID associated with this attribute."""
                 return 0x0407
 
             @ChipUtility.classproperty
             def attribute_id(cls) -> int:
+                """Return the attribute ID associated with this attribute."""
                 return 0x0001
 
             @ChipUtility.classproperty
@@ -260,10 +274,12 @@ class OccupancyMeasurementCluster(Cluster, CustomClusterMixin):
 
             @ChipUtility.classproperty
             def cluster_id(cls) -> int:
+                """Return the cluster ID associated with this attribute."""
                 return 0x0407
 
             @ChipUtility.classproperty
             def attribute_id(cls) -> int:
+                """Return the attribute ID associated with this attribute."""
                 return 0x0002
 
             @ChipUtility.classproperty
@@ -304,10 +320,12 @@ class TemperatureDifferenceMeasurementCluster(Cluster, CustomClusterMixin):
 
             @ChipUtility.classproperty
             def cluster_id(cls) -> int:
+                """Return the cluster ID associated with this attribute."""
                 return 0x0401
 
             @ChipUtility.classproperty
             def attribute_id(cls) -> int:
+                """Return the attribute ID associated with this attribute."""
                 return 0x0000
 
             @ChipUtility.classproperty
@@ -323,10 +341,12 @@ class TemperatureDifferenceMeasurementCluster(Cluster, CustomClusterMixin):
 
             @ChipUtility.classproperty
             def cluster_id(cls) -> int:
+                """Return the cluster ID associated with this attribute."""
                 return 0x0401
 
             @ChipUtility.classproperty
             def attribute_id(cls) -> int:
+                """Return the attribute ID associated with this attribute."""
                 return 0x0001
 
             @ChipUtility.classproperty
@@ -342,10 +362,12 @@ class TemperatureDifferenceMeasurementCluster(Cluster, CustomClusterMixin):
 
             @ChipUtility.classproperty
             def cluster_id(cls) -> int:
+                """Return the cluster ID associated with this attribute."""
                 return 0x0401
 
             @ChipUtility.classproperty
             def attribute_id(cls) -> int:
+                """Return the attribute ID associated with this attribute."""
                 return 0x0002
 
             @ChipUtility.classproperty
