@@ -2,7 +2,7 @@
   "name": "matter-dashboard",
   "version": "1.0.0",
   "description": "Dashboard for Python Matter Server",
-  "repository": "https://github.com/shaderhoth/python-matter-server/",
+  "repository": "https://github.com/shaderhoth/custom-python-matter-server/",
   "author": "Home Assistant maintainers",
   "license": "Apache-2.0",
   "scripts": {

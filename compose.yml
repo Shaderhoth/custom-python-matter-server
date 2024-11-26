@@ -1,5 +1,5 @@
 services:
-  # python-matter-server
+  # custom-python-matter-server
   matter-server:
     image: ghcr.io/shaderhoth/custom-python-matter-server:latest
     container_name: matter-server
