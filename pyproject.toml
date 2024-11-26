@@ -22,9 +22,9 @@ dependencies = [
   "orjson",
   "home-assistant-chip-clusters==2024.11.0",
 ]
-description = "Python Matter WebSocket Server"
+description = "Python Matter WebSocket Server with custom sensors"
 license = {text = "Apache-2.0"}
-name = "python-matter-server"
+name = "custom-python-matter-server"
 readme = "README.md"
 requires-python = ">=3.11"
 # The version is set by GH action on release!

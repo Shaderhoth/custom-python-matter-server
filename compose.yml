@@ -1,7 +1,7 @@
 services:
   # python-matter-server
   matter-server:
-    image: ghcr.io/shaderhoth/python-matter-server:latest
+    image: ghcr.io/shaderhoth/custom-python-matter-server:latest
     container_name: matter-server
     restart: unless-stopped
     # Required for mDNS to work correctly

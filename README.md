@@ -105,7 +105,7 @@ docker run -d \
   --security-opt apparmor=unconfined \
   -v $(pwd)/data:/data \
   --network=host \
-  ghcr.io/home-assistant-libs/python-matter-server:stable
+  ghcr.io/shaderhoth/custom-python-matter-server:stable
 ```
 
 > [!NOTE]
@@ -120,7 +120,7 @@ docker run -d \
   -v $(pwd)/data:/data \
   -v /run/dbus:/run/dbus:ro \
   --network=host \
-  ghcr.io/home-assistant-libs/python-matter-server:stable --storage-path /data --paa-root-cert-dir /data/credentials --bluetooth-adapter 0
+  ghcr.io/shaderhoth/custom-python-matter-server:stable --storage-path /data --paa-root-cert-dir /data/credentials --bluetooth-adapter 0
 ```
 
 ### Running using Docker compose
@@ -341,4 +341,4 @@ There is also a Python client library hosted in this repository (used by Home As
 
 The client library has a dependency on the chip/matter clusters package which contains all (Cluster) models and this package is os/platform independent. The server library depends on the Matter Core SDK (still named CHIP) which is architecture and OS specific. We build (and publish) wheels for Linux (amd64 and aarch64) to pypi but for other platforms (like Macos) you will need to build those wheels yourself using the exact same version of the SDK as we use for the clusters package. Take a look at our build script for directions: https://github.com/home-assistant-libs/chip-wheels/blob/main/.github/workflows/build.yaml
 
-To only install the client part: `pip install python-matter-server`
+To only install the client part: `pip install custom-python-matter-server`
