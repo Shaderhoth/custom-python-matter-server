@@ -70,7 +70,7 @@ class MatterClusterView extends LitElement {
             <div slot="headline">
               <b
                 >Attributes of
-                ${clusters[this.cluster]?.label || "Custom/Unknown Cluster"}
+                ${clusters[this.cluster]?.label || "Custom/Unknown Cluster ID"}
                 Cluster on Endpoint ${this.endpoint}</b
               >
             </div>
@@ -87,7 +87,7 @@ class MatterClusterView extends LitElement {
               <md-list-item>
                 <div slot="headline">
                   ${clusters[this.cluster!]?.attributes[attribute.key]?.label ||
-                  "Custom/Unknown Attribute"}
+                  "Custom/Unknown Attribute ID"}
                 </div>
                 <div slot="supporting-text">
                   AttributeId: ${attribute.key}
