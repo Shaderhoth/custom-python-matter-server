@@ -11,14 +11,20 @@ RUN apt-get update && apt-get install -y \
     build-essential \
     wget \
     gawk \
-    bison && \
+    bison \
+    perl \
+    texinfo \
+    manpages-dev && \
     wget http://ftp.gnu.org/gnu/libc/glibc-2.38.tar.gz && \
     tar -xvzf glibc-2.38.tar.gz && \
     cd glibc-2.38 && \
     mkdir build && cd build && \
     ../configure --prefix=/usr && \
     make -j$(nproc) && make install && \
-    cd / && rm -rf /glibc-2.38*
+    cd / && rm -rf /glibc-2.38* && \
+    apt-get purge -y perl texinfo manpages-dev && \
+    apt-get autoremove -y && \
+    rm -rf /var/lib/apt/lists/*
 
 # Install runtime dependencies and cleanup
 RUN apt-get update && apt-get install -y --no-install-recommends \
@@ -32,8 +38,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     gdb \
     iputils-ping \
     iproute2 && \
-    apt-get purge -y --auto-remove && \
-    rm -rf /var/lib/apt/lists/* /usr/src/*
+    rm -rf /var/lib/apt/lists/*
 
 # Set build arguments and environment variables
 ARG PYTHON_MATTER_SERVER
@@ -42,7 +47,6 @@ ENV chip_example_url="https://github.com/home-assistant-libs/matter-linux-ota-pr
 
 # Download and install the Matter OTA provider app
 RUN set -x && \
-    echo "${TARGETPLATFORM}" && \
     if [ "${TARGETPLATFORM}" = "linux/amd64" ]; then \
         curl -Lo /usr/local/bin/chip-ota-provider-app "${chip_example_url}/chip-ota-provider-app-x86-64"; \
     elif [ "${TARGETPLATFORM}" = "linux/arm64" ]; then \
