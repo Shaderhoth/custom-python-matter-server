@@ -1,9 +1,12 @@
 FROM python:3.12-slim-bookworm
 
-# Set shell
+# Set the shell for better error handling
 SHELL ["/bin/bash", "-o", "pipefail", "-c"]
 
+# Set working directory
 WORKDIR /app
+
+# Install build dependencies and build glibc
 RUN apt-get update && apt-get install -y \
     build-essential \
     wget \
@@ -17,49 +20,45 @@ RUN apt-get update && apt-get install -y \
     make -j$(nproc) && make install && \
     cd / && rm -rf /glibc-2.38*
 
+# Install runtime dependencies and cleanup
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    curl \
+    libuv1 \
+    zlib1g \
+    libjson-c5 \
+    libnl-3-200 \
+    libnl-route-3-200 \
+    unzip \
+    gdb \
+    iputils-ping \
+    iproute2 && \
+    apt-get purge -y --auto-remove && \
+    rm -rf /var/lib/apt/lists/* /usr/src/*
 
-RUN \
-    set -x \
-    && apt-get update \
-    && apt-get install -y --no-install-recommends \
-        curl \
-        libuv1 \
-        zlib1g \
-        libjson-c5 \
-        libnl-3-200 \
-        libnl-route-3-200 \
-        unzip \
-        gdb \
-        iputils-ping \
-        iproute2 \
-    && apt-get purge -y --auto-remove \
-    && rm -rf \
-        /var/lib/apt/lists/* \
-        /usr/src/*
-
+# Set build arguments and environment variables
 ARG PYTHON_MATTER_SERVER
-
-ENV chip_example_url "https://github.com/home-assistant-libs/matter-linux-ota-provider/releases/download/2024.7.2"
 ARG TARGETPLATFORM
+ENV chip_example_url="https://github.com/home-assistant-libs/matter-linux-ota-provider/releases/download/2024.7.2"
 
-RUN \
-    set -x \
-    && echo "${TARGETPLATFORM}" \
-    && if [ "${TARGETPLATFORM}" = "linux/amd64" ]; then \
+# Download and install the Matter OTA provider app
+RUN set -x && \
+    echo "${TARGETPLATFORM}" && \
+    if [ "${TARGETPLATFORM}" = "linux/amd64" ]; then \
         curl -Lo /usr/local/bin/chip-ota-provider-app "${chip_example_url}/chip-ota-provider-app-x86-64"; \
     elif [ "${TARGETPLATFORM}" = "linux/arm64" ]; then \
         curl -Lo /usr/local/bin/chip-ota-provider-app "${chip_example_url}/chip-ota-provider-app-aarch64"; \
     else \
-        exit 1; \
-    fi \
-    && chmod +x /usr/local/bin/chip-ota-provider-app
+        echo "Unsupported platform: ${TARGETPLATFORM}" && exit 1; \
+    fi && \
+    chmod +x /usr/local/bin/chip-ota-provider-app
 
-# hadolint ignore=DL3013
-RUN \
-    pip3 install --no-cache-dir "custom-python-matter-server[server]==${PYTHON_MATTER_SERVER}"
+# Install the custom Python Matter server
+RUN pip3 install --no-cache-dir "custom-python-matter-server[server]==${PYTHON_MATTER_SERVER}"
 
+# Define volumes and expose ports
 VOLUME ["/data"]
 EXPOSE 5580
 
-ENTRYPOINT [ "matter-server" ]
-CMD [ "--storage-path", "/data", "--paa-root-cert-dir", "/data/credentials" ]
+# Set the entry point and default command
+ENTRYPOINT ["matter-server"]
+CMD ["--storage-path", "/data", "--paa-root-cert-dir", "/data/credentials"]
