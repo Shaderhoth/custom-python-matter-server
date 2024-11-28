@@ -24,20 +24,21 @@ RUN wget --progress=dot:giga --retry-connrefused --timeout=20 http://ftp.gnu.org
     tar -xvzf glibc-2.38.tar.gz && \
     rm glibc-2.38.tar.gz
 
-# Configure glibc with adjustments for safety
+# Configure glibc with adjustments for safety and debugging
 RUN cd glibc-2.38 && \
     mkdir build && cd build && \
-    ../configure --prefix=/usr --disable-werror --disable-stack-protector --enable-stackguard-randomization
+    ../configure --prefix=/usr --disable-werror --disable-stack-protector --enable-stackguard-randomization --enable-debug
 
-# Build glibc with limited jobs and debug options
+# Build glibc with limited jobs and verbose output
 RUN cd glibc-2.38/build && \
     make -j1 V=1
 
-# Install glibc with verbose output
-RUN cd glibc-2.38/build && \
-    make -j1 install V=1 || (cat config.log && exit 1)
+# Install glibc with verbose output, skipping problematic targets
+RUN sed -i '/sotruss-lib.so/d' glibc-2.38/elf/Makefile && \
+    cd glibc-2.38/build && \
+    make -j1 install V=1 || (cat ../config.log && exit 1)
 
-# Clean up build dependencies
+# Clean up build dependencies and artifacts
 RUN apt-get purge -y perl texinfo manpages-dev libmpc-dev libmpfr-dev libgmp-dev && \
     apt-get autoremove -y && \
     apt-get clean && \
