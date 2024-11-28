@@ -17,18 +17,31 @@ RUN apt-get update && apt-get install -y \
     manpages-dev \
     libmpc-dev \
     libmpfr-dev \
-    libgmp-dev && \
-    wget http://ftp.gnu.org/gnu/libc/glibc-2.38.tar.gz && \
+    libgmp-dev
+
+# Download glibc source
+RUN wget http://ftp.gnu.org/gnu/libc/glibc-2.38.tar.gz && \
     tar -xvzf glibc-2.38.tar.gz && \
-    cd glibc-2.38 && \
+    rm glibc-2.38.tar.gz
+
+# Configure glibc
+RUN cd glibc-2.38 && \
     mkdir build && cd build && \
-    ../configure --prefix=/usr --disable-werror && \
-    make -j$(nproc) && \
-    make install && \
-    cd / && rm -rf /glibc-2.38* && \
-    apt-get purge -y perl texinfo manpages-dev libmpc-dev libmpfr-dev libgmp-dev && \
+    ../configure --prefix=/usr --disable-werror
+
+# Build glibc with verbose output
+RUN cd glibc-2.38/build && \
+    make -j4 V=1
+
+# Install glibc
+RUN cd glibc-2.38/build && \
+    make install
+
+# Clean up build dependencies
+RUN apt-get purge -y perl texinfo manpages-dev libmpc-dev libmpfr-dev libgmp-dev && \
     apt-get autoremove -y && \
-    rm -rf /var/lib/apt/lists/*
+    apt-get clean && \
+    rm -rf /var/lib/apt/lists/* /app/glibc-2.38*
 
 # Install runtime dependencies
 RUN apt-get update && apt-get install -y --no-install-recommends \
