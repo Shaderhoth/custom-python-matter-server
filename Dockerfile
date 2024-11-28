@@ -20,22 +20,22 @@ RUN apt-get update && apt-get install -y \
     libgmp-dev
 
 # Download glibc source
-RUN wget http://ftp.gnu.org/gnu/libc/glibc-2.38.tar.gz && \
+RUN wget --progress=dot:giga --retry-connrefused --timeout=20 http://ftp.gnu.org/gnu/libc/glibc-2.38.tar.gz && \
     tar -xvzf glibc-2.38.tar.gz && \
     rm glibc-2.38.tar.gz
 
-# Configure glibc
+# Configure glibc with adjustments for safety
 RUN cd glibc-2.38 && \
     mkdir build && cd build && \
-    ../configure --prefix=/usr --disable-werror --disable-stack-protector
+    ../configure --prefix=/usr --disable-werror --disable-stack-protector --enable-stackguard-randomization
 
-# Build glibc with limited parallelism and verbose output
+# Build glibc with limited jobs and debug options
 RUN cd glibc-2.38/build && \
-    make -j2 V=1
+    make -j1 V=1
 
-# Install glibc
+# Install glibc with verbose output
 RUN cd glibc-2.38/build && \
-    make -j1 install
+    make -j1 install V=1 || (cat config.log && exit 1)
 
 # Clean up build dependencies
 RUN apt-get purge -y perl texinfo manpages-dev libmpc-dev libmpfr-dev libgmp-dev && \
