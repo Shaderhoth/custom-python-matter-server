@@ -27,15 +27,15 @@ RUN wget http://ftp.gnu.org/gnu/libc/glibc-2.38.tar.gz && \
 # Configure glibc
 RUN cd glibc-2.38 && \
     mkdir build && cd build && \
-    ../configure --prefix=/usr --disable-werror
+    ../configure --prefix=/usr --disable-werror --disable-stack-protector
 
-# Build glibc with verbose output
+# Build glibc with limited parallelism and verbose output
 RUN cd glibc-2.38/build && \
-    make -j4 V=1
+    make -j2 V=1
 
 # Install glibc
 RUN cd glibc-2.38/build && \
-    make install
+    make -j1 install
 
 # Clean up build dependencies
 RUN apt-get purge -y perl texinfo manpages-dev libmpc-dev libmpfr-dev libgmp-dev && \
