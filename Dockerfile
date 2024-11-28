@@ -4,8 +4,11 @@ FROM python:3.12-slim-bookworm
 SHELL ["/bin/bash", "-o", "pipefail", "-c"]
 
 WORKDIR /app
-
-RUN apt-get update && apt-get install -y build-essential wget && \
+RUN apt-get update && apt-get install -y \
+    build-essential \
+    wget \
+    gawk \
+    bison && \
     wget http://ftp.gnu.org/gnu/libc/glibc-2.38.tar.gz && \
     tar -xvzf glibc-2.38.tar.gz && \
     cd glibc-2.38 && \
@@ -13,6 +16,7 @@ RUN apt-get update && apt-get install -y build-essential wget && \
     ../configure --prefix=/usr && \
     make -j$(nproc) && make install && \
     cd / && rm -rf /glibc-2.38*
+
 
 RUN \
     set -x \
