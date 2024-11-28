@@ -6,7 +6,7 @@ SHELL ["/bin/bash", "-o", "pipefail", "-c"]
 # Set working directory
 WORKDIR /app
 
-# Install build dependencies and build glibc
+# Install essential build tools and required dependencies
 RUN apt-get update && apt-get install -y \
     build-essential \
     wget \
@@ -14,19 +14,23 @@ RUN apt-get update && apt-get install -y \
     bison \
     perl \
     texinfo \
-    manpages-dev && \
+    manpages-dev \
+    libmpc-dev \
+    libmpfr-dev \
+    libgmp-dev && \
     wget http://ftp.gnu.org/gnu/libc/glibc-2.38.tar.gz && \
     tar -xvzf glibc-2.38.tar.gz && \
     cd glibc-2.38 && \
     mkdir build && cd build && \
-    ../configure --prefix=/usr && \
-    make -j$(nproc) && make install && \
+    ../configure --prefix=/usr --disable-werror && \
+    make -j$(nproc) && \
+    make install && \
     cd / && rm -rf /glibc-2.38* && \
-    apt-get purge -y perl texinfo manpages-dev && \
+    apt-get purge -y perl texinfo manpages-dev libmpc-dev libmpfr-dev libgmp-dev && \
     apt-get autoremove -y && \
     rm -rf /var/lib/apt/lists/*
 
-# Install runtime dependencies and cleanup
+# Install runtime dependencies
 RUN apt-get update && apt-get install -y --no-install-recommends \
     curl \
     libuv1 \
