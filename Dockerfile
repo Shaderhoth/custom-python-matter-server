@@ -1,21 +1,32 @@
-# Stage 1: Use Alpine with pre-built glibc
-FROM alpine:3.18 AS glibc
+# Stage 1: Compile glibc from source for ARM64
+FROM debian:bookworm AS glibc-builder
 
-# Add glibc binaries
-RUN apk --no-cache add wget bash && \
-    wget -q -O /etc/apk/keys/sgerrand.rsa.pub https://alpine-pkgs.sgerrand.com/sgerrand.rsa.pub && \
-    wget https://github.com/sgerrand/alpine-pkg-glibc/releases/download/2.35-r1/glibc-2.35-r1.apk && \
-    apk add --no-cache glibc-2.35-r1.apk && \
-    rm -f glibc-2.35-r1.apk
+# Install dependencies for building glibc
+RUN apt-get update && apt-get install -y \
+    build-essential \
+    wget \
+    gawk \
+    bison \
+    libc6-dev \
+    manpages-dev
+
+# Download and build glibc
+RUN wget http://ftp.gnu.org/gnu/libc/glibc-2.35.tar.gz && \
+    tar -xzf glibc-2.35.tar.gz && \
+    cd glibc-2.35 && \
+    mkdir build && cd build && \
+    ../configure --prefix=/opt/glibc && \
+    make -j$(nproc) && \
+    make install
 
 # Stage 2: Use the Python 3.12-slim base image
 FROM python:3.12-slim-bookworm
 
-# Copy glibc from the Alpine stage
-COPY --from=glibc /usr/glibc-compat /usr/glibc-compat
+# Copy glibc from the build stage
+COPY --from=glibc-builder /opt/glibc /opt/glibc
 
-# Add glibc to the library path
-ENV LD_LIBRARY_PATH="/usr/glibc-compat/lib:/usr/glibc-compat/lib64:$LD_LIBRARY_PATH"
+# Add the compiled glibc to the runtime path
+ENV LD_LIBRARY_PATH="/opt/glibc/lib:/opt/glibc/lib64:$LD_LIBRARY_PATH"
 
 # Install runtime dependencies
 RUN apt-get update && apt-get install -y \
