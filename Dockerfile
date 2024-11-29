@@ -1,13 +1,12 @@
 # Stage 1: Use Alpine with pre-built glibc
-# Stage 1: Use sgerrand's Alpine glibc
 FROM alpine:3.18 AS glibc
 
 # Add glibc binaries
 RUN apk --no-cache add wget bash && \
     wget -q -O /etc/apk/keys/sgerrand.rsa.pub https://alpine-pkgs.sgerrand.com/sgerrand.rsa.pub && \
-    wget https://github.com/sgerrand/alpine-pkg-glibc/releases/download/2.38-r0/glibc-2.38-r0.apk && \
-    apk add --no-cache glibc-2.38-r0.apk && \
-    rm -f glibc-2.38-r0.apk
+    wget https://github.com/sgerrand/alpine-pkg-glibc/releases/download/2.35-r1/glibc-2.35-r1.apk && \
+    apk add --no-cache glibc-2.35-r1.apk && \
+    rm -f glibc-2.35-r1.apk
 
 # Stage 2: Use the Python 3.12-slim base image
 FROM python:3.12-slim-bookworm
