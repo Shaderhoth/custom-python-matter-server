@@ -1,68 +1,61 @@
-# Stage 1: Compile glibc from source
-FROM debian:bookworm AS glibc-builder
-
-# Install dependencies for building glibc
-RUN apt-get update && apt-get install -y \
-    build-essential \
-    wget \
-    gawk \
-    bison \
-    libc6-dev \
-    manpages-dev \
-    python3 \
-    python3-distutils \
-    libselinux1-dev \
-    libgd-dev \
-    && rm -rf /var/lib/apt/lists/*
-
-# Download and build glibc
-RUN wget http://ftp.gnu.org/gnu/libc/glibc-2.35.tar.gz && \
-    tar -xzf glibc-2.35.tar.gz && \
-    cd glibc-2.35 && \
-    mkdir build && cd build && \
-    ../configure --prefix=/opt/glibc --enable-debug --disable-werror && \
-    make -j$(nproc) && \
-    make install
-
-# Stage 2: Use the Python 3.12-slim base image
 FROM python:3.12-slim-bookworm
 
-# Copy glibc from the build stage
-COPY --from=glibc-builder /opt/glibc /opt/glibc
+# Set shell
+SHELL ["/bin/bash", "-o", "pipefail", "-c"]
 
-# Add the compiled glibc to the runtime path
-ENV LD_LIBRARY_PATH="/opt/glibc/lib:/opt/glibc/lib64:$LD_LIBRARY_PATH"
+WORKDIR /app
 
-# Install runtime dependencies
-RUN apt-get update && apt-get install -y \
-    curl \
-    libuv1 \
-    zlib1g \
-    libjson-c5 \
-    libnl-3-200 \
-    libnl-route-3-200 \
-    unzip \
-    gdb \
-    iputils-ping \
-    iproute2 && \
-    rm -rf /var/lib/apt/lists/*
+# Install runtime and build dependencies
+RUN \
+    set -x \
+    && apt-get update \
+    && apt-get install -y --no-install-recommends \
+        curl \
+        git \
+        build-essential \
+        libuv1-dev \
+        zlib1g-dev \
+        libjson-c-dev \
+        libnl-3-dev \
+        libnl-route-3-dev \
+        libnl-genl-3-dev \
+        unzip \
+        gdb \
+        iputils-ping \
+        iproute2 \
+        python3-dev \
+        ninja-build \
+        clang \
+        libffi-dev \
+        cmake \
+    && apt-get purge -y --auto-remove \
+    && rm -rf \
+        /var/lib/apt/lists/* \
+        /usr/src/*
 
-# Set build arguments and environment variables
 ARG PYTHON_MATTER_SERVER
+
 ENV chip_example_url="https://github.com/home-assistant-libs/matter-linux-ota-provider/releases/download/2024.7.2"
+ARG TARGETPLATFORM
 
-# Download and install the Matter OTA provider app for ARM64
-RUN set -e && \
-    curl -Lo /usr/local/bin/chip-ota-provider-app --retry 5 --fail "${chip_example_url}/chip-ota-provider-app-aarch64" && \
-    chmod +x /usr/local/bin/chip-ota-provider-app
+RUN \
+    set -x \
+    && echo "${TARGETPLATFORM}" \
+    && if [ "${TARGETPLATFORM}" = "linux/amd64" ]; then \
+        curl -Lo /usr/local/bin/chip-ota-provider-app "${chip_example_url}/chip-ota-provider-app-x86-64"; \
+    elif [ "${TARGETPLATFORM}" = "linux/arm64" ]; then \
+        curl -Lo /usr/local/bin/chip-ota-provider-app "${chip_example_url}/chip-ota-provider-app-aarch64"; \
+    else \
+        exit 1; \
+    fi \
+    && chmod +x /usr/local/bin/chip-ota-provider-app
 
-# Install the custom Python Matter server
-RUN pip3 install --no-cache-dir "custom-python-matter-server[server]==${PYTHON_MATTER_SERVER}"
+# Install the custom Python Matter server from source
+RUN \
+    pip3 install --no-cache-dir --no-binary :all: "custom-python-matter-server[server]==${PYTHON_MATTER_SERVER}"
 
-# Define volumes and expose ports
 VOLUME ["/data"]
 EXPOSE 5580
 
-# Set the entry point and default command
 ENTRYPOINT ["matter-server"]
 CMD ["--storage-path", "/data", "--paa-root-cert-dir", "/data/credentials"]
