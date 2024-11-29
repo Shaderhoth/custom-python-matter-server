@@ -1,4 +1,4 @@
-# Stage 1: Compile glibc from source for ARM64
+# Stage 1: Compile glibc from source
 FROM debian:bookworm AS glibc-builder
 
 # Install dependencies for building glibc
@@ -11,6 +11,8 @@ RUN apt-get update && apt-get install -y \
     manpages-dev \
     python3 \
     python3-distutils \
+    libselinux1-dev \
+    libgd-dev \
     && rm -rf /var/lib/apt/lists/*
 
 # Download and build glibc
@@ -18,7 +20,7 @@ RUN wget http://ftp.gnu.org/gnu/libc/glibc-2.35.tar.gz && \
     tar -xzf glibc-2.35.tar.gz && \
     cd glibc-2.35 && \
     mkdir build && cd build && \
-    ../configure --prefix=/opt/glibc && \
+    ../configure --prefix=/opt/glibc --enable-debug --disable-werror && \
     make -j$(nproc) && \
     make install
 
