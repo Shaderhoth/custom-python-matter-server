@@ -1,22 +1,16 @@
 # Stage 1: Use Alpine with pre-built glibc
-FROM frolvlad/alpine-glibc:latest AS glibc
+# Stage 1: Use sgerrand's Alpine glibc
+FROM alpine:3.18 AS glibc
 
-# Install additional dependencies (if required)
-RUN apk add --no-cache \
-    bash \
-    curl \
-    libuv \
-    zlib \
-    json-c
+# Add glibc binaries
+RUN apk --no-cache add wget bash && \
+    wget -q -O /etc/apk/keys/sgerrand.rsa.pub https://alpine-pkgs.sgerrand.com/sgerrand.rsa.pub && \
+    wget https://github.com/sgerrand/alpine-pkg-glibc/releases/download/2.38-r0/glibc-2.38-r0.apk && \
+    apk add --no-cache glibc-2.38-r0.apk && \
+    rm -f glibc-2.38-r0.apk
 
 # Stage 2: Use the Python 3.12-slim base image
 FROM python:3.12-slim-bookworm
-
-# Set the shell for better error handling
-SHELL ["/bin/bash", "-o", "pipefail", "-c"]
-
-# Set working directory
-WORKDIR /app
 
 # Copy glibc from the Alpine stage
 COPY --from=glibc /usr/glibc-compat /usr/glibc-compat
@@ -24,10 +18,8 @@ COPY --from=glibc /usr/glibc-compat /usr/glibc-compat
 # Add glibc to the library path
 ENV LD_LIBRARY_PATH="/usr/glibc-compat/lib:$LD_LIBRARY_PATH"
 
-# Install essential build tools and runtime dependencies
+# Install runtime dependencies
 RUN apt-get update && apt-get install -y \
-    build-essential \
-    wget \
     curl \
     libuv1 \
     zlib1g \
