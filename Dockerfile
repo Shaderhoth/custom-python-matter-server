@@ -11,7 +11,13 @@ RUN apk --no-cache add wget bash && \
 # Stage 2: Use the Python 3.12-slim base image
 FROM python:3.12-slim-bookworm
 
-# Install runtime dependencies before copying glibc
+# Copy glibc from the Alpine stage
+COPY --from=glibc /usr/glibc-compat /usr/glibc-compat
+
+# Add glibc to the library path
+ENV LD_LIBRARY_PATH="/usr/glibc-compat/lib:/usr/glibc-compat/lib64:$LD_LIBRARY_PATH"
+
+# Install runtime dependencies
 RUN apt-get update && apt-get install -y \
     curl \
     libuv1 \
@@ -25,26 +31,13 @@ RUN apt-get update && apt-get install -y \
     iproute2 && \
     rm -rf /var/lib/apt/lists/*
 
-# Copy glibc from the Alpine stage
-COPY --from=glibc /usr/glibc-compat /usr/glibc-compat
-
-# Add glibc to the library path
-ENV LD_LIBRARY_PATH="/usr/glibc-compat/lib:$LD_LIBRARY_PATH"
-
 # Set build arguments and environment variables
 ARG PYTHON_MATTER_SERVER
-ARG TARGETPLATFORM
 ENV chip_example_url="https://github.com/home-assistant-libs/matter-linux-ota-provider/releases/download/2024.7.2"
 
-# Download and install the Matter OTA provider app
-RUN set -x && \
-    if [ "${TARGETPLATFORM}" = "linux/amd64" ]; then \
-        curl -Lo /usr/local/bin/chip-ota-provider-app "${chip_example_url}/chip-ota-provider-app-x86-64"; \
-    elif [ "${TARGETPLATFORM}" = "linux/arm64" ]; then \
-        curl -Lo /usr/local/bin/chip-ota-provider-app "${chip_example_url}/chip-ota-provider-app-aarch64"; \
-    else \
-        echo "Unsupported platform: ${TARGETPLATFORM}" && exit 1; \
-    fi && \
+# Download and install the Matter OTA provider app for ARM64
+RUN set -e && \
+    curl -Lo /usr/local/bin/chip-ota-provider-app --retry 5 --fail "${chip_example_url}/chip-ota-provider-app-aarch64" && \
     chmod +x /usr/local/bin/chip-ota-provider-app
 
 # Install the custom Python Matter server
