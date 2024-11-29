@@ -8,7 +8,10 @@ RUN apt-get update && apt-get install -y \
     gawk \
     bison \
     libc6-dev \
-    manpages-dev
+    manpages-dev \
+    python3 \
+    python3-distutils \
+    && rm -rf /var/lib/apt/lists/*
 
 # Download and build glibc
 RUN wget http://ftp.gnu.org/gnu/libc/glibc-2.35.tar.gz && \
