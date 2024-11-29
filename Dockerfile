@@ -27,22 +27,26 @@ RUN wget --progress=dot:giga --retry-connrefused --timeout=20 http://ftp.gnu.org
 # Configure glibc with adjustments for safety and debugging
 RUN cd glibc-2.38 && \
     mkdir build && cd build && \
-    ../configure --prefix=/usr --disable-werror --disable-stack-protector --enable-stackguard-randomization --enable-debug
+    ../configure --prefix=/usr --disable-werror --disable-stack-protector --enable-stackguard-randomization --enable-debug || cat config.log
 
 # Build glibc with limited jobs and verbose output
 RUN cd glibc-2.38/build && \
-    make -j1 V=1
+    make -j1 V=1 || (echo "Build failed. Printing log:" && tail -n 1000 config.log && exit 1)
 
-# Install glibc with verbose output, skipping problematic targets
+# Modify the Makefile to skip problematic targets and log the output
 RUN sed -i '/sotruss-lib.so/d' glibc-2.38/elf/Makefile && \
-    cd glibc-2.38/build && \
-    make -j1 install V=1 || (cat ../config.log && exit 1)
+    sed -i '/recipe commences before first target/d' glibc-2.38/elf/Makefile
+
+# Install glibc with verbose output
+RUN cd glibc-2.38/build && \
+    make -j1 install V=1 || (echo "Install failed. Printing logs:" && tail -n 1000 config.log && exit 1)
 
 # Clean up build dependencies and artifacts
 RUN apt-get purge -y perl texinfo manpages-dev libmpc-dev libmpfr-dev libgmp-dev && \
     apt-get autoremove -y && \
     apt-get clean && \
     rm -rf /var/lib/apt/lists/* /app/glibc-2.38*
+
 
 # Install runtime dependencies
 RUN apt-get update && apt-get install -y --no-install-recommends \
