@@ -28,10 +28,20 @@ RUN \
         clang \
         libffi-dev \
         cmake \
-    && apt-get purge -y --auto-remove \
+        pkg-config \
+        libssl-dev \
     && rm -rf \
         /var/lib/apt/lists/* \
         /usr/src/*
+
+# Install Rust using rustup
+ENV RUSTUP_HOME=/usr/local/rustup \
+    CARGO_HOME=/usr/local/cargo \
+    PATH=/usr/local/cargo/bin:$PATH
+
+RUN \
+    curl https://sh.rustup.rs -sSf | sh -s -- -y --profile minimal \
+    && rustup default stable
 
 ARG PYTHON_MATTER_SERVER
 
@@ -49,6 +59,9 @@ RUN \
         exit 1; \
     fi \
     && chmod +x /usr/local/bin/chip-ota-provider-app
+
+# Upgrade pip to the latest version
+RUN pip install --upgrade pip
 
 # Install the custom Python Matter server from source
 RUN \
