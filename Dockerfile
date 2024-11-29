@@ -11,13 +11,7 @@ RUN apk --no-cache add wget bash && \
 # Stage 2: Use the Python 3.12-slim base image
 FROM python:3.12-slim-bookworm
 
-# Copy glibc from the Alpine stage
-COPY --from=glibc /usr/glibc-compat /usr/glibc-compat
-
-# Add glibc to the library path
-ENV LD_LIBRARY_PATH="/usr/glibc-compat/lib:$LD_LIBRARY_PATH"
-
-# Install runtime dependencies
+# Install runtime dependencies before copying glibc
 RUN apt-get update && apt-get install -y \
     curl \
     libuv1 \
@@ -30,6 +24,12 @@ RUN apt-get update && apt-get install -y \
     iputils-ping \
     iproute2 && \
     rm -rf /var/lib/apt/lists/*
+
+# Copy glibc from the Alpine stage
+COPY --from=glibc /usr/glibc-compat /usr/glibc-compat
+
+# Add glibc to the library path
+ENV LD_LIBRARY_PATH="/usr/glibc-compat/lib:$LD_LIBRARY_PATH"
 
 # Set build arguments and environment variables
 ARG PYTHON_MATTER_SERVER
