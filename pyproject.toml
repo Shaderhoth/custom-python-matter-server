@@ -4,7 +4,7 @@ requires = ["setuptools>=62.3"]
 
 [project]
 authors = [
-  {name = "The Home Assistant Authors", email = "hello@home-assistant.io"},
+  {name = "David", email = "davidkuc6@gmail.com"},
 ]
 classifiers = [
   "Development Status :: 3 - Alpha",
@@ -60,9 +60,17 @@ test = [
 [project.scripts]
 matter-server = "matter_server.server.__main__:main"
 
-[tool.codespell]
-ignore-words-list = "requestor"
-skip = "dashboard/package-lock.json,tests/fixtures/nodes/lighting-example-app.json,dashboard/src/client/models/descriptions.ts"
+[tool.cibuildwheel]
+# Limit builds to Python 3.11 and 3.12
+python-versions = "cp311-cp311 cp312-cp312"
+
+[tool.cibuildwheel.platforms]
+linux = true
+macos = false  # Set to true if you want to build for macOS
+windows = false  # Set to true if you want to build for Windows
+
+[tool.cibuildwheel.build]
+manylinux-policy = "manylinux2014"
 
 [tool.setuptools]
 include-package-data = true
