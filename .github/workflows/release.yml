@@ -11,6 +11,8 @@ jobs:
   build-and-publish-pypi:
     name: Builds and publishes releases to PyPI
     runs-on: ubuntu-latest
+    outputs:
+      version: ${{ steps.vars.outputs.tag }}
     steps:
       - uses: actions/checkout@v4
 
@@ -52,12 +54,12 @@ jobs:
           import tomli_w
 
           with open("pyproject.toml", "rb") as f:
-              pyproject = tomli.load(f)
+            pyproject = tomli.load(f)
 
           pyproject["project"]["version"] = "${{ steps.vars.outputs.tag }}"
 
           with open("pyproject.toml", "wb") as f:
-              tomli_w.dump(pyproject, f)
+            tomli_w.dump(pyproject, f)
 
       - name: Build dashboard
         run: |
@@ -83,6 +85,7 @@ jobs:
   build-and-push-container-image:
     name: Builds and pushes the Matter Server container to ghcr.io
     runs-on: ubuntu-latest
+    needs: build-and-publish-pypi  # Add this line
     permissions:
       packages: write
     steps:
@@ -118,4 +121,5 @@ jobs:
             ghcr.io/shaderhoth/custom-python-matter-server:${{ steps.tags.outputs.major }},
             ghcr.io/shaderhoth/custom-python-matter-server:stable
           push: true
-          build-args: PYTHON_MATTER_SERVER=${{ steps.vars.outputs.tag }}
+          build-args: |
+            PYTHON_MATTER_SERVER=${{ needs.build-and-publish-pypi.outputs.version }}
