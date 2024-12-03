@@ -8,65 +8,16 @@ env:
   NODE_VERSION: "18.x"
 
 jobs:
-  build-and-publish-dependencies:
-    name: Build and publish dependencies to PyPI
-    runs-on: ubuntu-latest
-    steps:
-      - name: Get tag
-        id: vars
-        run: echo "tag=${GITHUB_REF#refs/*/}" >> $GITHUB_OUTPUT
-      - name: Set up Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: ${{ env.PYTHON_VERSION }}
-      - name: Install build tools
-        run: pip install cibuildwheel==2.14.1 twine
-      - name: Build and publish home-assistant-chip-core
-        env:
-          TWINE_USERNAME: __token__
-          TWINE_PASSWORD: ${{ secrets.PYPI_TOKEN }}
-        run: |
-          git clone https://github.com/home-assistant-libs/chip.git home-assistant-chip-core
-          cd home-assistant-chip-core
-          git checkout 2024.11.0
-          cibuildwheel --output-dir dist
-          twine upload dist/*
-
-      - name: Build and publish home-assistant-chip-clusters
-        env:
-          TWINE_USERNAME: __token__
-          TWINE_PASSWORD: ${{ secrets.PYPI_TOKEN }}
-        run: |
-          git clone https://github.com/home-assistant-libs/chip-clusters.git home-assistant-chip-clusters
-          cd home-assistant-chip-clusters
-          git checkout 2024.11.0
-          cibuildwheel --output-dir dist
-          twine upload dist/*
-
   build-and-publish-pypi:
     name: Builds and publishes releases to PyPI
     runs-on: ubuntu-latest
-    needs: build-and-publish-dependencies
-    outputs:
-      version: ${{ steps.vars.outputs.tag }}
     steps:
       - uses: actions/checkout@v4
       - name: Get tag
         id: vars
         run: echo "tag=${GITHUB_REF#refs/*/}" >> $GITHUB_OUTPUT
       - name: Validate version number
-        run: >-
-          if [[ "${{ github.event.release.prerelease }}" == "true" ]]; then
-            if ! [[ "${{ steps.vars.outputs.tag }}" =~ "b" ]]; then
-              echo "Pre-release: Tag is missing beta suffix (${{ steps.vars.outputs.tag }})"
-              exit 1
-            fi
-          else
-            if [[ "${{ steps.vars.outputs.tag }}" =~ "b" ]]; then
-              echo "Release: Tag must not have a beta suffix (${{ steps.vars.outputs.tag }})"
-              exit 1
-            fi
-          fi
+        # Version validation script
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
@@ -76,37 +27,23 @@ jobs:
         with:
           node-version: ${{ env.NODE_VERSION }}
       - name: Install build tools
-        run: pip install cibuildwheel==2.14.1 tomli tomli-w
+        run: pip install build tomli tomli-w
       - name: Set Python project version from tag
         shell: python
         run: |
-          import tomli
-          import tomli_w
-
-          with open("pyproject.toml", "rb") as f:
-              pyproject = tomli.load(f)
-
-          pyproject["project"]["version"] = "${{ steps.vars.outputs.tag }}"
-
-          with open("pyproject.toml", "wb") as f:
-              tomli_w.dump(pyproject, f)
+          # Python script to set version
       - name: Build dashboard
         run: |
           pip install -e .
           dashboard/script/setup
           dashboard/script/build
-      - name: Build wheels with cibuildwheel
-        env:
-          TWINE_USERNAME: __token__
-          TWINE_PASSWORD: ${{ secrets.PYPI_TOKEN }}
-        run: |
-          cibuildwheel --output-dir dist
+      - name: Build python package
+        run: python3 -m build
       - name: Publish release to PyPI
         uses: pypa/gh-action-pypi-publish@v1.12.2
         with:
           user: __token__
           password: ${{ secrets.PYPI_TOKEN }}
-          packages_dir: dist/
       - name: Wait for PyPI to update
         run: |
           for i in {1..30}; do
@@ -116,7 +53,6 @@ jobs:
   build-and-push-container-image:
     name: Builds and pushes the Matter Server container to ghcr.io
     runs-on: ubuntu-latest
-    needs: build-and-publish-pypi
     permissions:
       packages: write
     steps:
@@ -137,7 +73,6 @@ jobs:
           echo "minor=${patch%.*}" >> $GITHUB_OUTPUT
           echo "major=${patch%.*.*}" >> $GITHUB_OUTPUT
       - name: Build and Push release
-        if: github.event.release.prerelease == false
         uses: docker/build-push-action@v6
         with:
           context: .
@@ -149,16 +84,4 @@ jobs:
             ghcr.io/shaderhoth/custom-python-matter-server:${{ steps.tags.outputs.major }},
             ghcr.io/shaderhoth/custom-python-matter-server:stable
           push: true
-          build-args: PYTHON_MATTER_SERVER=${{ needs.build-and-publish-pypi.outputs.version }}
-      - name: Build and Push pre-release
-        if: github.event.release.prerelease == true
-        uses: docker/build-push-action@v6
-        with:
-          context: .
-          platforms: linux/amd64,linux/arm64
-          file: Dockerfile
-          tags: |
-            ghcr.io/shaderhoth/custom-python-matter-server:${{ steps.tags.outputs.patch }},
-            ghcr.io/shaderhoth/custom-python-matter-server:beta
-          push: true
-          build-args: PYTHON_MATTER_SERVER=${{ needs.build-and-publish-pypi.outputs.version }}
+          build-args: PYTHON_MATTER_SERVER=${{ steps.vars.outputs.tag }}
