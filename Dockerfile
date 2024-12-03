@@ -24,7 +24,7 @@ RUN \
 
 ARG PYTHON_MATTER_SERVER
 
-ENV chip_example_url="https://github.com/home-assistant-libs/matter-linux-ota-provider/releases/download/2024.7.2"
+ENV chip_example_url="https://github.com/home-assistant-libs/matter-linux-ota-provider/releases/download/2024.11.3"
 ARG TARGETPLATFORM
 
 RUN \
@@ -44,10 +44,10 @@ RUN pip install --upgrade pip
 
 # Install the custom Python Matter server from PyPI
 RUN \
-    pip3 install --no-cache-dir "custom-python-matter-server[server]==${PYTHON_MATTER_SERVER}"
+    pip install --no-cache-dir "custom-python-matter-server[server]==${PYTHON_MATTER_SERVER}"
 
 VOLUME ["/data"]
 EXPOSE 5580
 
-ENTRYPOINT [ "matter-server" ]
-CMD [ "--storage-path", "/data", "--paa-root-cert-dir", "/data/credentials" ]
+ENTRYPOINT ["matter-server"]
+CMD ["--storage-path", "/data", "--paa-root-cert-dir", "/data/credentials"]
