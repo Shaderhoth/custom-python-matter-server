@@ -20,8 +20,7 @@ RUN \
         iputils-ping \
         iproute2 \
     && rm -rf \
-        /var/lib/apt/lists/* \
-        /usr/src/*
+        /var/lib/apt/lists/*
 
 ARG PYTHON_MATTER_SERVER
 
