@@ -5,43 +5,23 @@ SHELL ["/bin/bash", "-o", "pipefail", "-c"]
 
 WORKDIR /app
 
-# Install build and runtime dependencies
 RUN \
     set -x \
     && apt-get update \
     && apt-get install -y --no-install-recommends \
         curl \
-        git \
-        build-essential \
-        libuv1-dev \
-        zlib1g-dev \
-        libjson-c-dev \
-        libnl-3-dev \
-        libnl-route-3-dev \
-        libnl-genl-3-dev \
+        libuv1 \
+        zlib1g \
+        libjson-c5 \
+        libnl-3-200 \
+        libnl-route-3-200 \
         unzip \
         gdb \
         iputils-ping \
         iproute2 \
-        python3-dev \
-        ninja-build \
-        clang \
-        libffi-dev \
-        cmake \
-        pkg-config \
-        libssl-dev \
     && rm -rf \
         /var/lib/apt/lists/* \
         /usr/src/*
-
-# Install Rust using rustup
-ENV RUSTUP_HOME=/usr/local/rustup \
-    CARGO_HOME=/usr/local/cargo \
-    PATH=/usr/local/cargo/bin:$PATH
-
-RUN \
-    curl https://sh.rustup.rs -sSf | sh -s -- -y --profile minimal \
-    && rustup default stable
 
 ARG PYTHON_MATTER_SERVER
 
@@ -63,9 +43,9 @@ RUN \
 # Upgrade pip to the latest version
 RUN pip install --upgrade pip
 
-# Install the custom Python Matter server from source
+# Install the custom Python Matter server from PyPI
 RUN \
-    pip3 install --no-cache-dir --no-binary :all: "custom-python-matter-server[server]==${PYTHON_MATTER_SERVER}"
+    pip3 install --no-cache-dir "custom-python-matter-server[server]==${PYTHON_MATTER_SERVER}"
 
 VOLUME ["/data"]
 EXPOSE 5580
